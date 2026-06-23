@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: motorist-system
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # paste your Neon connection string in the Render dashboard
+      - key: APP_ENV
+        value: production
+      - key: SITE_NAME
+        value: Motorcycle Traffic Control System
+      - key: SITE_URL
+        value: https://your-app.onrender.com/
+    healthCheckPath: /users/login.php
