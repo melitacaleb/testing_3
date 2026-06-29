@@ -12,5 +12,5 @@ services:
       - key: SITE_NAME
         value: Motorcycle Traffic Control System
       - key: SITE_URL
-        value: https://your-app.onrender.com/
+        value: https://testing-3-6gj6.onrender.com/users/login.php
     healthCheckPath: /users/login.php
