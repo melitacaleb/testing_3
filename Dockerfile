@@ -1,30 +1,30 @@
-FROM php:8.2-apache
+# Multi-stage build for the Next.js app in ./next-app
 
-# Postgres extension + build deps
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        libpq-dev \
-        unzip \
-        git \
-    && docker-php-ext-install pdo pdo_pgsql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY next-app/package.json next-app/package-lock.json* ./
+RUN npm ci
 
-# Apache config: serve the app, allow .htaccess if you add any later
-RUN a2enmod rewrite
-COPY docker/apache-app.conf /etc/apache2/sites-available/000-default.conf
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY next-app/ ./
+# Dummy values so `next build` can statically analyze env access; real
+# values are supplied at runtime via Render's environment variables.
+ENV DATABASE_URL="postgres://user:pass@localhost:5432/db"
+ENV JWT_SECRET="build-time-placeholder"
+RUN npm run build
 
-WORKDIR /var/www/html
-COPY . /var/www/html
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Make sure the logs dir used by sendEmailNotification() is writable
-RUN mkdir -p /var/www/html/logs && chown -R www-data:www-data /var/www/html
+# Next.js standalone output bundles only the files needed to run the server.
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Render injects $PORT at runtime; Apache's default config listens on 80,
-# so we rewrite the listen directive at container start.
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+EXPOSE 3000
+# Render injects $PORT at runtime; the standalone server reads it directly.
+CMD ["node", "server.js"]
 
-EXPOSE 80
-ENTRYPOINT ["entrypoint.sh"]
-CMD ["apache2-foreground"]

@@ -3,14 +3,15 @@ services:
     name: motorist-system
     runtime: docker
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: starter
     envVars:
       - key: DATABASE_URL
         sync: false   # paste your Neon connection string in the Render dashboard
-      - key: APP_ENV
+      - key: JWT_SECRET
+        sync: false   # paste a long random secret in the Render dashboard
+      - key: NODE_ENV
         value: production
-      - key: SITE_NAME
+      - key: NEXT_PUBLIC_SITE_NAME
         value: Motorcycle Traffic Control System
-      - key: SITE_URL
-        value: https://testing-3-6gj6.onrender.com/users/login.php
-    healthCheckPath: /users/login.php
+    healthCheckPath: /login
