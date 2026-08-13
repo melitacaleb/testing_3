@@ -4,7 +4,7 @@ import { query } from "@/lib/db";
 import { createComplaintSchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
   if (!session || session.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
   if (!session || session.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

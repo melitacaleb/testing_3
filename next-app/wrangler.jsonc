@@ -1,0 +1,27 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "testing2",
+	"compatibility_date": "2026-08-12",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			// Replace with the ID printed by:
+			// wrangler hyperdrive create testing2-db --connection-string="<your DATABASE_URL>"
+			"id": "REPLACE_WITH_HYPERDRIVE_ID"
+		}
+	],
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "testing2"
+		}
+	]
+}

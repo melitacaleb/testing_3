@@ -12,7 +12,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request payload." }, { status: 400 });
   }
 
-  const client = await getPool().connect();
+  const pool = await getPool();
+  const client = await pool.connect();
   try {
     const { fullName, email, password, licenseNumber, phoneNumber, address } = parsed.data;
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
 
     await client.query("COMMIT");
 
-    const token = signSession({
+    const token = await signSession({
       userId: accountInsert.rows[0].id,
       role: "user",
       email,

@@ -1,34 +1,14 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { NextRequest, NextResponse } from "next/server";
-import type { AppRole, SessionPayload } from "@/types/domain";
+import { NextResponse } from "next/server";
+import type { AppRole } from "@/types/domain";
+import { COOKIE_NAME, getSessionFromRequest, signSession, verifySession } from "@/lib/session";
 
-const COOKIE_NAME = "mtcs_session";
-const JWT_SECRET = process.env.JWT_SECRET;
-
-function getJwtSecret() {
-  if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET is not set.");
-  }
-  return JWT_SECRET;
-}
+export { getSessionFromRequest, signSession, verifySession };
 
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
-}
-
-export function signSession(payload: SessionPayload) {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
-}
-
-export function verifySession(token: string): SessionPayload | null {
-  try {
-    return jwt.verify(token, getJwtSecret()) as unknown as SessionPayload;
-  } catch {
-    return null;
-  }
 }
 
 export function setSessionCookie(response: NextResponse, token: string) {
@@ -68,12 +48,4 @@ export async function requireServerRole(role: AppRole) {
     redirect(role === "admin" ? "/admin/login" : "/login");
   }
   return session;
-}
-
-export function getSessionFromRequest(request: NextRequest) {
-  const token = request.cookies.get(COOKIE_NAME)?.value;
-  if (!token) {
-    return null;
-  }
-  return verifySession(token);
 }

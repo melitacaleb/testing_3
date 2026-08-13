@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This account is not active." }, { status: 403 });
   }
 
-  const token = signSession({
+  const token = await signSession({
     userId: user.id,
     role: scope,
     email: user.email,

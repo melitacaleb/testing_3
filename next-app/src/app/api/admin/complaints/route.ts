@@ -3,7 +3,7 @@ import { getSessionFromRequest } from "@/lib/auth";
 import { query } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
   if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

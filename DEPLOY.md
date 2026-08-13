@@ -1,31 +1,63 @@
-# Deploying to Render + Neon
+# Deploying to Render + Supabase
 
 This app was rewritten from PHP into a Next.js (App Router) + React frontend
-with API routes, running on Node.js and PostgreSQL (Neon). The `Dockerfile`
-now builds and runs `next-app/` instead of the old PHP/Apache image. Read
-this before you deploy.
+with API routes, running on Node.js and PostgreSQL (Supabase). The
+`Dockerfile` builds and runs `next-app/` instead of the old PHP/Apache image.
+Read this before you deploy.
 
-## 1. Create the Neon database
+The app talks to Postgres directly via the `pg` driver
+(`next-app/src/lib/db.ts`), so any standard Postgres provider works — these
+steps use Supabase, but Neon or a self-hosted Postgres instance work the same
+way as long as `DATABASE_URL` points at them.
 
-1. Sign up / log in at https://neon.tech and create a new project (any region close to your Render service's region is fine).
-2. In the Neon dashboard, open **Connection Details** and copy the connection string. It looks like:
+## 1. Create the Supabase project and database
+
+1. Sign up / log in at https://supabase.com and create a new project (pick a
+   region close to your Render service's region).
+2. Once the project is provisioned, go to **Project Settings > Database >
+   Connection string** and copy the **Transaction pooler** connection string
+   (port `6543`) — this is the one to use for `DATABASE_URL` in a serverless/
+   container deploy like Render, since it handles connection pooling for you.
+   It looks like:
    ```
-   postgres://USER:PASSWORD@ep-xxxx-xxxx.neon.tech/neondb?sslmode=require
+   postgres://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres
    ```
-3. Rename the database to something meaningful, or just use the default and point the URL at it — the app doesn't care what it's called.
-4. Load the schema:
-   ```bash
-   psql "postgres://USER:PASSWORD@ep-xxxx-xxxx.neon.tech/neondb?sslmode=require" -f schema.postgres.sql
-   ```
-   (If you don't have `psql` locally, Neon's web SQL editor can run the same file — paste its contents in and execute.)
-5. **Change the default admin password.** The schema seeds one admin user (`admin@example.com`) with a bcrypt hash of the word `password`. Generate your own hash and replace it:
+3. Apply the schema. This repo's Supabase project lives in `next-app/supabase/`
+   (the CLI's "working directory" for this repo — see `next-app/supabase/config.toml`
+   and `next-app/supabase/migrations/`). Two ways to apply it:
+   - **Supabase CLI** (from `next-app/`):
+     ```bash
+     npx supabase login
+     npx supabase link --project-ref <your-project-ref>
+     npx supabase db push
+     ```
+     This runs everything in `next-app/supabase/migrations/` against your
+     remote database.
+   - **SQL editor**: paste the contents of
+     `next-app/supabase/migrations/20260812000000_init_schema.sql` into the
+     Supabase Dashboard's SQL editor and run it.
+4. (Optional) Seed sample data: run `next-app/supabase/seed.sql` the same way
+   (SQL editor, or `npx supabase db reset` for a local dev database). Seed
+   data is **not** applied automatically to remote databases by `db push` or
+   the GitHub integration — it's for local/demo use only.
+5. **Change the default admin password.** The seed data ships one admin user
+   (`admin@example.com`) with a bcrypt hash of the word `password`. Generate
+   your own hash and replace it:
    ```bash
    node -e "console.log(require('bcryptjs').hashSync('your-new-password', 10))"
    ```
-   (run from inside `next-app/`, where `bcryptjs` is already a dependency). Then in Neon's SQL editor:
+   (run from inside `next-app/`, where `bcryptjs` is already a dependency). Then in the Supabase SQL editor:
    ```sql
    UPDATE users SET password = '<paste hash here>' WHERE email = 'admin@example.com';
    ```
+
+### Optional: GitHub integration for automatic migrations
+
+Supabase's Dashboard **Project Settings > Integrations > GitHub** connection
+can auto-apply new files added to `next-app/supabase/migrations/` on push to
+your main branch. Since this repo's app (and `supabase/` folder) lives in a
+subdirectory, set the integration's **Working directory** field to `next-app`
+so it finds the right migrations folder.
 
 ## 2. Push this code to a Git repo
 
