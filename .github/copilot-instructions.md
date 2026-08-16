@@ -9,16 +9,21 @@
   `useState` only where interactivity requires it (e.g., login/register
   forms). Avoid `useEffect` for data fetching — the ESLint config flags
   `setState` calls inside effects (`react-hooks/set-state-in-effect`)
-- Database / Data Access: PostgreSQL (Neon-hosted) accessed via
-  `@neondatabase/serverless` (`Pool`/`Client`, node-postgres-compatible
-  API) — **no ORM**, **not** the `pg` package (`pg` cannot be bundled for
-  Cloudflare Workers; see Deployment). All queries go through
-  `next-app/src/lib/db.ts` (`query()` / `getPool()`, both async — always
-  `await` them); never import `pool` directly. On Node, `getPool()` needs
-  the `ws` package as a WebSocket polyfill (wired up automatically in
-  `db.ts`); on Workers the native global `WebSocket` is used instead, and
-  a fresh `Pool` is created per request (see `isCloudflareWorkers` export).
-  Shared schema lives in root `schema.postgres.sql`
+- Database / Data Access: PostgreSQL (Supabase-hosted) accessed via
+  `postgres` (postgres.js) — **no ORM**, **not** `pg` (`pg` cannot be
+  bundled for Cloudflare Workers; see Deployment) and **not**
+  `@neondatabase/serverless` (that driver's WebSocket path only works
+  against Neon's own infrastructure, not Supabase or other hosts).
+  postgres.js has native Cloudflare Workers support (via the Workers TCP
+  socket API, no Hyperdrive needed) and works identically on Node. All
+  queries go through `next-app/src/lib/db.ts`: `query(text, values)`
+  returns `{ rows }` (pg-compatible shape) via `sql.unsafe(...)`; use
+  `getSql()` directly for multi-statement work (e.g. `sql.begin(async tx
+  => {...})` for transactions — see `api/auth/register/route.ts`). Never
+  construct a `postgres()` client directly. On Cloudflare Workers each
+  request gets its own client (`isCloudflareWorkers` export) since
+  connections can't be reused across requests; on Node a singleton client
+  is reused. Shared schema lives in root `schema.postgres.sql`
 - Auth: JWT (`jose` + `bcryptjs`) stored in an HTTP-only cookie
   (`mtcs_session`). Two roles: `admin` and `user`. Split across two files:
   `next-app/src/lib/session.ts` (Edge-safe: `signSession`/`verifySession`/
