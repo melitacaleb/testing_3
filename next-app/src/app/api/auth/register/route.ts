@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getPool } from "@/lib/db";
+import { getPool, isCloudflareWorkers } from "@/lib/db";
 import { registerSchema } from "@/lib/validators";
 import { setSessionCookie, signSession } from "@/lib/auth";
 
@@ -57,5 +57,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
   } finally {
     client.release();
+    if (isCloudflareWorkers) {
+      await pool.end();
+    }
   }
 }

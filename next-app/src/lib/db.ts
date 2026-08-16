@@ -1,53 +1,53 @@
-import { Pool, type QueryResultRow } from "pg";
+import { neonConfig, Pool, type QueryResultRow } from "@neondatabase/serverless";
 
 // Set only inside the actual Cloudflare Workers runtime, never on Node (Render/Docker).
 // See https://developers.cloudflare.com/workers/reference/how-workers-works/#navigatoruseragent
-const isCloudflareWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+export const isCloudflareWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
 
 let pool: Pool | null = null;
+let wsConfigured = false;
 
-async function getWorkersPool() {
-  // Workers isolates can't share a pooled TCP connection across requests, so we
-  // create a fresh, single-use pool per request. Hyperdrive handles pooling for us.
-  const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-  const { env } = getCloudflareContext();
-  if (!env.HYPERDRIVE) {
-    throw new Error("HYPERDRIVE binding is not configured in wrangler.jsonc.");
+async function ensureNodeWebSocket() {
+  // Workers have a native global WebSocket; Node needs one supplied.
+  if (wsConfigured || isCloudflareWorkers) {
+    return;
   }
-
-  return new Pool({
-    connectionString: env.HYPERDRIVE.connectionString,
-    maxUses: 1,
-  });
+  const { default: ws } = await import("ws");
+  neonConfig.webSocketConstructor = ws;
+  wsConfigured = true;
 }
 
 export async function getPool() {
+  await ensureNodeWebSocket();
+
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not set.");
+  }
+
   if (isCloudflareWorkers) {
-    return getWorkersPool();
+    // Workers can't reuse a WebSocket connection across requests, so each
+    // request gets its own Pool; callers are responsible for calling `.end()`.
+    return new Pool({ connectionString: databaseUrl });
   }
 
   if (!pool) {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      throw new Error("DATABASE_URL is not set.");
-    }
-
-    // Hosted providers (Supabase, Neon, etc.) require SSL and don't always
-    // include `sslmode=require` in the connection string they hand you.
-    // Only skip SSL for local/loopback development databases.
-    const isLocal = /(^|@)(localhost|127\.0\.0\.1)([:/]|$)/.test(databaseUrl);
-    const ssl = isLocal ? false : { rejectUnauthorized: false };
-
-    pool = new Pool({
-      connectionString: databaseUrl,
-      ssl,
-    });
+    pool = new Pool({ connectionString: databaseUrl });
   }
 
   return pool;
 }
 
 export async function query<T extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = []) {
+  if (isCloudflareWorkers) {
+    const workersPool = await getPool();
+    try {
+      return await workersPool.query<T>(text, values);
+    } finally {
+      await workersPool.end();
+    }
+  }
+
   const activePool = await getPool();
   return activePool.query<T>(text, values);
 }
