@@ -1,53 +1,53 @@
-import { neonConfig, Pool, type QueryResultRow } from "@neondatabase/serverless";
+import postgres, { type Sql } from "postgres";
 
 // Set only inside the actual Cloudflare Workers runtime, never on Node (Render/Docker).
 // See https://developers.cloudflare.com/workers/reference/how-workers-works/#navigatoruseragent
 export const isCloudflareWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
 
-let pool: Pool | null = null;
-let wsConfigured = false;
+let sql: Sql | null = null;
 
-async function ensureNodeWebSocket() {
-  // Workers have a native global WebSocket; Node needs one supplied.
-  if (wsConfigured || isCloudflareWorkers) {
-    return;
-  }
-  const { default: ws } = await import("ws");
-  neonConfig.webSocketConstructor = ws;
-  wsConfigured = true;
-}
-
-export async function getPool() {
-  await ensureNodeWebSocket();
-
+function createSql() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set.");
   }
 
-  if (isCloudflareWorkers) {
-    // Workers can't reuse a WebSocket connection across requests, so each
-    // request gets its own Pool; callers are responsible for calling `.end()`.
-    return new Pool({ connectionString: databaseUrl });
-  }
+  // Hosted providers (Supabase, Neon, etc.) require SSL; only skip it for
+  // local/loopback development databases.
+  const isLocal = /(^|@)(localhost|127\.0\.0\.1)([:/]|$)/.test(databaseUrl);
 
-  if (!pool) {
-    pool = new Pool({ connectionString: databaseUrl });
-  }
-
-  return pool;
+  return postgres(databaseUrl, {
+    ssl: isLocal ? false : "require",
+    max: isCloudflareWorkers ? 1 : 10,
+    // Safe with connection poolers (e.g. Supabase's transaction-mode pooler).
+    prepare: false,
+  });
 }
 
-export async function query<T extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = []) {
+export function getSql() {
   if (isCloudflareWorkers) {
-    const workersPool = await getPool();
-    try {
-      return await workersPool.query<T>(text, values);
-    } finally {
-      await workersPool.end();
-    }
+    // Workers can't reuse a connection across requests, so each request gets its own.
+    return createSql();
   }
 
-  const activePool = await getPool();
-  return activePool.query<T>(text, values);
+  if (!sql) {
+    sql = createSql();
+  }
+
+  return sql;
+}
+
+export async function query<T extends Record<string, unknown> = Record<string, unknown>>(
+  text: string,
+  values: unknown[] = []
+): Promise<{ rows: T[] }> {
+  const client = getSql();
+  try {
+    const rows = await client.unsafe(text, values as never[]);
+    return { rows: rows as unknown as T[] };
+  } finally {
+    if (isCloudflareWorkers) {
+      await client.end();
+    }
+  }
 }
