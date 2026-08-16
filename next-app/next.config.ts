@@ -3,6 +3,10 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // pg-cloudflare's package.json only exposes dist/index.js under the "workerd"
+  // export condition; without this, Next's file tracer resolves the "default"
+  // condition (dist/empty.js) and never copies the real file for the Workers build.
+  serverExternalPackages: ["pg", "pg-cloudflare"],
 };
 
 // Enables local access to Cloudflare bindings when running `next dev`.
