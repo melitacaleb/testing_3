@@ -27,13 +27,13 @@ export default function AuthLoginForm({ scope, title }: Props) {
         body: JSON.stringify({ email, password, scope }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { error?: string; redirectTo?: string };
       if (!response.ok) {
         setError(data.error ?? "Login failed");
         return;
       }
 
-      router.push(data.redirectTo);
+      router.push(data.redirectTo ?? "/");
       router.refresh();
     } catch {
       setError("Unexpected network error. Please try again.");

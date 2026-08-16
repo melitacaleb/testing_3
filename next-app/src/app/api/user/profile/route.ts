@@ -32,7 +32,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => null);
+  const body = (await request.json().catch(() => null)) as {
+    fullName?: string;
+    phoneNumber?: string;
+    address?: string;
+  } | null;
   const fullName = String(body?.fullName ?? "").trim();
   const phoneNumber = String(body?.phoneNumber ?? "").trim();
   const address = String(body?.address ?? "").trim();

@@ -30,7 +30,7 @@ export default function RegisterForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = (await response.json()) as { error?: string };
       if (!response.ok) {
         setError(data.error ?? "Registration failed");
         return;
