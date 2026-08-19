@@ -26,7 +26,8 @@ async function handleLogin(request: Request): Promise<Response> {
     }>(`SELECT id, full_name, email, password, role, status FROM ${table} WHERE email = $1 LIMIT 1`, [email]);
   } catch (error) {
     console.error("Login DB query failed:", error);
-    return NextResponse.json({ error: "Could not reach the database. Please try again." }, { status: 503 });
+    const message = error instanceof Error ? error.message : "Unknown database error";
+    return NextResponse.json({ error: `Database connection failed: ${message}` }, { status: 503 });
   }
 
   const user = data.rows[0];
