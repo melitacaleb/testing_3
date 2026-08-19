@@ -1,19 +1,31 @@
 import postgres, { type Sql } from "postgres";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// Set only inside the actual Cloudflare Workers runtime, never on Node (Render/Docker).
-// See https://developers.cloudflare.com/workers/reference/how-workers-works/#navigatoruseragent
-export const isCloudflareWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
-
 let sql: Sql | null = null;
 
+type WorkerRuntimeEnv = {
+  DATABASE_URL?: string;
+};
+
+function getWorkerRuntimeEnv(): WorkerRuntimeEnv | null {
+  try {
+    return getCloudflareContext().env as WorkerRuntimeEnv;
+  } catch {
+    // The Worker context only exists during a deployed Worker request.
+    return null;
+  }
+}
+
+export function isWorkerRuntime(): boolean {
+  return getWorkerRuntimeEnv() !== null;
+}
+
 function getDatabaseUrl(): string {
-  const databaseUrl = isCloudflareWorkers
-    ? (getCloudflareContext().env as { DATABASE_URL?: string }).DATABASE_URL
-    : process.env.DATABASE_URL;
+  const workerEnv = getWorkerRuntimeEnv();
+  const databaseUrl = workerEnv?.DATABASE_URL ?? process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not set.");
+    throw new Error(workerEnv ? "DATABASE_URL is missing from Worker runtime variables." : "DATABASE_URL is not set.");
   }
 
   return databaseUrl;
@@ -21,6 +33,7 @@ function getDatabaseUrl(): string {
 
 function createSql() {
   const databaseUrl = getDatabaseUrl();
+  const workerRuntime = isWorkerRuntime();
 
   // Hosted providers (Supabase, Neon, etc.) require SSL; only skip it for
   // local/loopback development databases.
@@ -28,14 +41,14 @@ function createSql() {
 
   return postgres(databaseUrl, {
     ssl: isLocal ? false : "require",
-    max: isCloudflareWorkers ? 1 : 10,
+    max: workerRuntime ? 1 : 10,
     // Safe with connection poolers (e.g. Supabase's transaction-mode pooler).
     prepare: false,
   });
 }
 
 export function getSql() {
-  if (isCloudflareWorkers) {
+  if (isWorkerRuntime()) {
     // Workers can't reuse a connection across requests, so each request gets its own.
     return createSql();
   }
@@ -56,7 +69,7 @@ export async function query<T extends Record<string, unknown> = Record<string, u
     const rows = await client.unsafe(text, values as never[]);
     return { rows: rows as unknown as T[] };
   } finally {
-    if (isCloudflareWorkers) {
+    if (isWorkerRuntime()) {
       await client.end();
     }
   }
