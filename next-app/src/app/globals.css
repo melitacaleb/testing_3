@@ -210,6 +210,107 @@ button:hover {
   font-weight: 700;
 }
 
+.ride-booking {
+  max-width: 760px;
+  display: grid;
+  gap: 1rem;
+}
+
+.ride-booking-copy {
+  padding: 1.25rem 0 0;
+}
+
+.ride-booking-copy h2 {
+  margin: 0.2rem 0;
+}
+
+.ride-kicker {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ride-route {
+  display: flex;
+  align-items: center;
+  width: min(100%, 420px);
+  padding-top: 0.75rem;
+}
+
+.ride-stop {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.ride-stop--end {
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+
+.ride-route-line {
+  height: 3px;
+  width: 100%;
+  background: repeating-linear-gradient(90deg, var(--primary) 0 10px, transparent 10px 16px);
+}
+
+.ride-form {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(17, 24, 39, 0.08);
+}
+
+.ride-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.ride-location {
+  justify-self: start;
+  padding: 0.55rem 0.7rem;
+  color: var(--primary-dark);
+  background: transparent;
+  border: 1px solid var(--primary);
+}
+
+.ride-location:hover {
+  color: #fff;
+  background: var(--primary);
+}
+
+.ride-estimate {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem;
+  color: #44403c;
+  background: #f0fdfa;
+  border-left: 3px solid var(--primary);
+}
+
+.ride-estimate strong {
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.ride-message {
+  margin: 0;
+  padding: 0.8rem;
+  background: #fff7ed;
+  border-left: 3px solid var(--secondary);
+}
+
 .inline-form {
   display: flex;
   gap: 0.5rem;
