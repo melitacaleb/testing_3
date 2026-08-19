@@ -3,7 +3,7 @@ import { query } from "@/lib/db";
 import { loginSchema } from "@/lib/validators";
 import { setSessionCookie, signSession, verifyPassword } from "@/lib/auth";
 
-export async function POST(request: Request) {
+async function handleLogin(request: Request): Promise<Response> {
   const body = await request.json().catch(() => null);
   const parsed = loginSchema.safeParse(body);
 
@@ -64,4 +64,15 @@ export async function POST(request: Request) {
   });
   setSessionCookie(response, token);
   return response;
+}
+
+// Top-level wrapper ensures any uncaught error always returns JSON, never an empty 500.
+export async function POST(request: Request) {
+  try {
+    return await handleLogin(request);
+  } catch (error) {
+    console.error("Unhandled login error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: `Server error: ${message}` }, { status: 500 });
+  }
 }
