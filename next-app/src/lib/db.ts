@@ -1,4 +1,5 @@
 import postgres, { type Sql } from "postgres";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 // Set only inside the actual Cloudflare Workers runtime, never on Node (Render/Docker).
 // See https://developers.cloudflare.com/workers/reference/how-workers-works/#navigatoruseragent
@@ -6,11 +7,20 @@ export const isCloudflareWorkers = typeof navigator !== "undefined" && navigator
 
 let sql: Sql | null = null;
 
-function createSql() {
-  const databaseUrl = process.env.DATABASE_URL;
+function getDatabaseUrl(): string {
+  const databaseUrl = isCloudflareWorkers
+    ? (getCloudflareContext().env as { DATABASE_URL?: string }).DATABASE_URL
+    : process.env.DATABASE_URL;
+
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set.");
   }
+
+  return databaseUrl;
+}
+
+function createSql() {
+  const databaseUrl = getDatabaseUrl();
 
   // Hosted providers (Supabase, Neon, etc.) require SSL; only skip it for
   // local/loopback development databases.
