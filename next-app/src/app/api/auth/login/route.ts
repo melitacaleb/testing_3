@@ -14,14 +14,20 @@ export async function POST(request: Request) {
   const { email, password, scope } = parsed.data;
 
   const table = scope === "admin" ? "users" : "user_account";
-  const data = await query<{
-    id: number;
-    full_name: string;
-    email: string;
-    password: string;
-    role: string;
-    status: string;
-  }>(`SELECT id, full_name, email, password, role, status FROM ${table} WHERE email = $1 LIMIT 1`, [email]);
+  let data;
+  try {
+    data = await query<{
+      id: number;
+      full_name: string;
+      email: string;
+      password: string;
+      role: string;
+      status: string;
+    }>(`SELECT id, full_name, email, password, role, status FROM ${table} WHERE email = $1 LIMIT 1`, [email]);
+  } catch (error) {
+    console.error("Login DB query failed:", error);
+    return NextResponse.json({ error: "Could not reach the database. Please try again." }, { status: 503 });
+  }
 
   const user = data.rows[0];
   if (!user) {

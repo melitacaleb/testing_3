@@ -51,7 +51,8 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ ok: true });
     setSessionCookie(response, token);
     return response;
-  } catch {
+  } catch (error) {
+    console.error("Registration failed:", error);
     return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
   } finally {
     if (isCloudflareWorkers) {
