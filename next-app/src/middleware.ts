@@ -4,7 +4,7 @@ import { getSessionFromRequest } from "@/lib/session";
 const adminPaths = ["/admin/dashboard", "/admin/motorists", "/admin/reports", "/admin/complaints"];
 const userPaths = ["/user/dashboard", "/user/profile", "/user/complaints", "/user/receipts"];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const session = await getSessionFromRequest(request);
   const { pathname } = request.nextUrl;
 
