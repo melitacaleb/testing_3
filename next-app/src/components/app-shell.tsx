@@ -29,7 +29,7 @@ export default function AppShell({ role, title, children }: Props) {
     <div className="shell">
       <aside className="sidebar">
         <h2>Motorist Control</h2>
-        <p className="muted">{role === "admin" ? "Admin Panel" : "User Portal"}</p>
+        <p className="muted">{role === "admin" ? "Admin Console" : "Motorist Portal"}</p>
         <nav>
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="nav-link">

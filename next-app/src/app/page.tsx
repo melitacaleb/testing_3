@@ -6,12 +6,12 @@ export default function Home() {
       <main className="hero">
         <h1>Motorist Traffic Control System</h1>
         <p className="muted">
-          Your application has been migrated to a Next.js + React architecture with API routes and PostgreSQL access.
+          One record for every motorist, ticket, and ride — checked in, tracked, and closed out from a single console.
         </p>
         <div className="hero-actions">
-          <Link href="/login">User Login</Link>
+          <Link href="/login">Motorist login</Link>
           <Link href="/register">Register</Link>
-          <Link href="/admin/login">Admin Login</Link>
+          <Link href="/admin/login">Admin console</Link>
         </div>
       </main>
     </div>
