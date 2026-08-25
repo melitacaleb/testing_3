@@ -9,6 +9,12 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "REPLACE_WITH_HYPERDRIVE_ID"
+		}
+	],
 	"services": [
 		{
 			// Self-reference service binding, the service name must match the worker name
