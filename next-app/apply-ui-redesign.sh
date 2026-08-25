@@ -1,0 +1,703 @@
+#!/usr/bin/env bash
+set -e
+echo "This script must be run from inside the next-app/ folder."
+if [ ! -f "package.json" ] || [ ! -d "src" ]; then
+  echo "ERROR: run this from next-app/ (package.json and src/ not found here)."
+  exit 1
+fi
+
+echo "==> Writing src/app/globals.css"
+mkdir -p $(dirname src/app/globals.css)
+cat > src/app/globals.css << 'FILE_EOF'
+@import "tailwindcss";
+
+:root {
+  --asphalt: #1b1e24;
+  --asphalt-soft: #262b33;
+  --paper: #efece3;
+  --surface: #fffdf8;
+  --ink: #1b1e24;
+  --ink-muted: #5b5748;
+  --amber: #f3a712;
+  --amber-ink: #6b4700;
+  --route: #2447d6;
+  --route-dark: #1a349e;
+  --violation: #c1272d;
+  --hairline: #d9d4c4;
+  --hairline-dark: #3a3f49;
+}
+
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-plex-sans);
+  --font-display: var(--font-oswald);
+  --font-mono: var(--font-plex-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex-sans), sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--route);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-oswald), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ---------- Landing: overhead gantry-sign hero ---------- */
+
+.landing {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  padding: 2rem;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 78px,
+      rgba(239, 236, 227, 0.04) 78px,
+      rgba(239, 236, 227, 0.04) 80px
+    ),
+    var(--asphalt);
+}
+
+.hero {
+  max-width: 720px;
+  background: var(--asphalt-soft);
+  border: 3px solid var(--amber);
+  border-radius: 4px;
+  padding: 2.5rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.hero::before {
+  content: "SYSTEM ONLINE";
+  display: inline-block;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: 2px;
+  padding: 0.2rem 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.9rem, 5.5vw, 2.9rem);
+  line-height: 1.08;
+  margin: 0;
+  color: #fdfaf2;
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+.hero .muted {
+  color: #b9b4a4;
+  margin-top: 0.75rem;
+  max-width: 46ch;
+}
+
+.hero-actions {
+  margin-top: 1.75rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hero-actions a {
+  display: inline-block;
+  padding: 0.7rem 1.1rem;
+  border-radius: 3px;
+  text-decoration: none;
+  font-family: var(--font-plex-mono), monospace;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--hairline-dark);
+  color: #fdfaf2;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.hero-actions a:first-child {
+  background: var(--amber);
+  color: var(--amber-ink);
+  border-color: var(--amber);
+}
+
+.hero-actions a:last-child {
+  border-color: var(--route);
+  color: #cdd7ff;
+}
+
+.hero-actions a:hover {
+  transform: translateY(-1px);
+}
+
+/* ---------- Auth ---------- */
+
+.auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  padding: 1.5rem;
+  background: var(--paper);
+}
+
+.card,
+.card-lite {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  box-shadow: 0 1px 0 var(--hairline);
+}
+
+.card {
+  width: min(440px, 92vw);
+  padding: 1.75rem;
+  display: grid;
+  gap: 0.9rem;
+  border-top: 3px solid var(--route);
+}
+
+.card h1 {
+  font-size: 1.4rem;
+}
+
+.card label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+textarea {
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  padding: 0.65rem 0.7rem;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-plex-sans), sans-serif;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: 2px;
+}
+
+button {
+  border: 0;
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  background: var(--ink);
+  color: #fdfaf2;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+button:hover {
+  background: var(--route-dark);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  color: var(--violation);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.auth-link {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* ---------- App shell / console ---------- */
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+.sidebar {
+  background: var(--asphalt);
+  color: #efece3;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-right: 3px solid var(--amber);
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #fdfaf2;
+}
+
+.sidebar .muted {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-top: -0.6rem;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 0.5rem;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.55rem 0.65rem;
+  border-radius: 3px;
+  border-left: 3px solid transparent;
+  color: #d8d4c6;
+  text-decoration: none;
+  font-size: 0.92rem;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.nav-link:hover {
+  background: rgba(243, 167, 18, 0.1);
+  border-left-color: var(--amber);
+  color: #fdfaf2;
+}
+
+.logout {
+  margin-top: auto;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--violation);
+  color: #ff9da1;
+}
+
+.logout:hover {
+  background: var(--violation);
+  color: #fff;
+}
+
+.content {
+  padding: 1.5rem 1.75rem;
+  background: var(--paper);
+}
+
+.content > header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 2px dashed var(--hairline);
+}
+
+.content h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* ---------- Stat cards: citation-stub signature element ---------- */
+
+.stat-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.stat-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  padding: 1.1rem 0.95rem 0.9rem;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-image: linear-gradient(90deg, var(--amber) 60%, transparent 0);
+  background-size: 12px 3px;
+  background-repeat: repeat-x;
+}
+
+.stat-card p {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin: 0.35rem 0 0;
+  color: var(--route);
+}
+
+.stat-card span,
+.stat-card label {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* ---------- Ride booking ---------- */
+
+.ride-booking {
+  max-width: 720px;
+  display: grid;
+  gap: 1rem;
+}
+
+.ride-booking-copy {
+  padding: 1rem 0 0;
+}
+
+.ride-booking-copy h2 {
+  margin: 0.2rem 0;
+  font-size: 1.3rem;
+}
+
+.ride-kicker {
+  margin: 0;
+  color: var(--route);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ride-route {
+  display: flex;
+  align-items: center;
+  width: min(100%, 420px);
+  padding-top: 0.75rem;
+}
+
+.ride-stop {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 3px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--route);
+}
+
+.ride-stop--end {
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--amber-ink);
+}
+
+.ride-route-line {
+  height: 3px;
+  width: 100%;
+  background: repeating-linear-gradient(90deg, var(--route) 0 10px, transparent 10px 16px);
+}
+
+.ride-form {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-top: 3px solid var(--route);
+  border-radius: 0 0 6px 6px;
+}
+
+.ride-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.ride-location {
+  justify-self: start;
+  padding: 0.55rem 0.7rem;
+  color: var(--route-dark);
+  background: transparent;
+  border: 1px solid var(--route);
+}
+
+.ride-location:hover {
+  color: #fff;
+  background: var(--route);
+}
+
+.ride-estimate {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem;
+  color: var(--ink);
+  background: #eef1ff;
+  border-left: 3px solid var(--route);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.9rem;
+}
+
+.ride-estimate strong {
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.ride-message {
+  margin: 0;
+  padding: 0.8rem;
+  background: #fdf3e0;
+  border-left: 3px solid var(--amber);
+  font-size: 0.9rem;
+}
+
+/* ---------- Data / tables (citation ledger) ---------- */
+
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th {
+  text-align: left;
+  padding: 0.6rem 0.65rem;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+}
+
+td {
+  text-align: left;
+  padding: 0.6rem 0.65rem;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.88rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.two-col {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card-lite {
+  padding: 1rem;
+  border-left: 3px solid var(--hairline-dark);
+}
+
+.stack-list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 3px solid var(--amber);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+FILE_EOF
+
+echo "==> Writing src/app/layout.tsx"
+mkdir -p $(dirname src/app/layout.tsx)
+cat > src/app/layout.tsx << 'FILE_EOF'
+import type { Metadata } from "next";
+import { Oswald, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import "./globals.css";
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+export const metadata: Metadata = {
+  title: "Motorist Traffic Control System",
+  description: "Next.js migration of the motorist management application.",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${oswald.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}
+FILE_EOF
+
+echo "==> Writing src/app/page.tsx"
+mkdir -p $(dirname src/app/page.tsx)
+cat > src/app/page.tsx << 'FILE_EOF'
+import Link from "next/link";
+
+export default function Home() {
+  return (
+    <div className="landing">
+      <main className="hero">
+        <h1>Motorist Traffic Control System</h1>
+        <p className="muted">
+          One record for every motorist, ticket, and ride — checked in, tracked, and closed out from a single console.
+        </p>
+        <div className="hero-actions">
+          <Link href="/login">Motorist login</Link>
+          <Link href="/register">Register</Link>
+          <Link href="/admin/login">Admin console</Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+FILE_EOF
+
+echo "==> Writing src/components/app-shell.tsx"
+mkdir -p $(dirname src/components/app-shell.tsx)
+cat > src/components/app-shell.tsx << 'FILE_EOF'
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+type Props = {
+  role: "admin" | "user";
+  title: string;
+  children: ReactNode;
+};
+
+const navByRole = {
+  admin: [
+    { href: "/admin/dashboard", label: "Dashboard" },
+    { href: "/admin/motorists", label: "Motorists" },
+    { href: "/admin/reports", label: "Reports" },
+    { href: "/admin/complaints", label: "Complaints" },
+  ],
+  user: [
+    { href: "/user/dashboard", label: "Dashboard" },
+    { href: "/user/profile", label: "Profile" },
+    { href: "/user/complaints", label: "Complaints" },
+    { href: "/user/receipts", label: "Receipts" },
+  ],
+};
+
+export default function AppShell({ role, title, children }: Props) {
+  const links = navByRole[role];
+
+  return (
+    <div className="shell">
+      <aside className="sidebar">
+        <h2>Motorist Control</h2>
+        <p className="muted">{role === "admin" ? "Admin Console" : "Motorist Portal"}</p>
+        <nav>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="nav-link">
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        <form action="/api/auth/logout" method="post">
+          <button className="logout" type="submit">
+            Logout
+          </button>
+        </form>
+      </aside>
+      <main className="content">
+        <header>
+          <h1>{title}</h1>
+        </header>
+        {children}
+      </main>
+    </div>
+  );
+}
+FILE_EOF
+
+echo ""
+echo "UI redesign files written."
+echo "Run: npm run deploy   (or npm run dev to preview locally first)"
