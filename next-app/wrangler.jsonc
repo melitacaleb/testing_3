@@ -1,0 +1,24 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "testing-3",
+	"compatibility_date": "2026-08-12",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"keep_vars": true,
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "2212058725e349828a3406e3823b8b94"
+		}
+	],
+	"services": [
+		{
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "testing-3"
+		}
+	]
+}

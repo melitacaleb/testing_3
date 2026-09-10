@@ -1,0 +1,9 @@
+next-app/node_modules
+next-app/.next
+node_modules
+.git
+*.md
+admin
+users
+includes
+schema.postgres.sql

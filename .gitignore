@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js
+.next/
+**/.next/
+
+# OpenNext / Cloudflare generated files
+.open-next/
+**/.open-next/
+.wrangler/
+**/.wrangler/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+**/.dev.vars
+
+# Build output
+out/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
