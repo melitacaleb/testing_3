@@ -1,0 +1,65 @@
+diff --git a/next-app/package.json b/next-app/package.json
+index 0fbf03d..00effd3 100644
+--- a/next-app/package.json
++++ b/next-app/package.json
+@@ -7,8 +7,8 @@
+     "build": "next build",
+     "start": "next start",
+     "lint": "eslint",
+-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
++    "preview": "npm run cf-typegen && opennextjs-cloudflare build && opennextjs-cloudflare preview",
++    "deploy": "npm run cf-typegen && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+   },
+   "dependencies": {
+diff --git a/next-app/src/app/api/user/profile/route.ts b/next-app/src/app/api/user/profile/route.ts
+index f965952..56325bf 100644
+--- a/next-app/src/app/api/user/profile/route.ts
++++ b/next-app/src/app/api/user/profile/route.ts
+@@ -32,7 +32,11 @@ export async function PATCH(request: NextRequest) {
+     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+   }
+ 
+-  const body = await request.json().catch(() => null);
++  const body = (await request.json().catch(() => null)) as {
++    fullName?: string;
++    phoneNumber?: string;
++    address?: string;
++  } | null;
+   const fullName = String(body?.fullName ?? "").trim();
+   const phoneNumber = String(body?.phoneNumber ?? "").trim();
+   const address = String(body?.address ?? "").trim();
+diff --git a/next-app/src/components/auth-login-form.tsx b/next-app/src/components/auth-login-form.tsx
+index 57968cb..ae55b6e 100644
+--- a/next-app/src/components/auth-login-form.tsx
++++ b/next-app/src/components/auth-login-form.tsx
+@@ -27,13 +27,13 @@ export default function AuthLoginForm({ scope, title }: Props) {
+         body: JSON.stringify({ email, password, scope }),
+       });
+ 
+-      const data = await response.json();
++      const data = (await response.json()) as { error?: string; redirectTo?: string };
+       if (!response.ok) {
+         setError(data.error ?? "Login failed");
+         return;
+       }
+ 
+-      router.push(data.redirectTo);
++      router.push(data.redirectTo ?? "/");
+       router.refresh();
+     } catch {
+       setError("Unexpected network error. Please try again.");
+diff --git a/next-app/src/components/register-form.tsx b/next-app/src/components/register-form.tsx
+index 4aa172c..949a832 100644
+--- a/next-app/src/components/register-form.tsx
++++ b/next-app/src/components/register-form.tsx
+@@ -30,7 +30,7 @@ export default function RegisterForm() {
+         headers: { "content-type": "application/json" },
+         body: JSON.stringify(payload),
+       });
+-      const data = await response.json();
++      const data = (await response.json()) as { error?: string };
+       if (!response.ok) {
+         setError(data.error ?? "Registration failed");
+         return;
