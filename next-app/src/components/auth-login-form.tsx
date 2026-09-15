@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -14,6 +14,17 @@ export default function AuthLoginForm({ scope, title }: Props) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error");
+    if (oauthError) {
+      // Reading the error the Google OAuth callback redirected back with —
+      // an external system (the URL), read once after mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(oauthError);
+    }
+  }, []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,6 +85,15 @@ export default function AuthLoginForm({ scope, title }: Props) {
       <button type="submit" disabled={loading}>
         {loading ? "Signing in..." : "Sign in"}
       </button>
+
+      <div className="auth-divider">
+        <span>or</span>
+      </div>
+
+      <a href={`/api/auth/google/start?scope=${scope}`} className="oauth-button">
+        <span className="oauth-google-mark">G</span>
+        Continue with Google
+      </a>
     </form>
   );
 }

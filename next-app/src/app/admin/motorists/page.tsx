@@ -1,5 +1,6 @@
 import AppShell from "@/components/app-shell";
 import AddMotoristForm from "@/components/add-motorist-form";
+import MotoristsTable from "@/components/motorists-table";
 import { requireServerRole } from "@/lib/auth";
 import { getAdminMotorists } from "@/lib/server-data";
 
@@ -21,32 +22,7 @@ export default async function AdminMotoristsPage({ searchParams }: Props) {
         <button type="submit">Search</button>
       </form>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>License</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Bikes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {motorists.map((m) => (
-              <tr key={m.id}>
-                <td>#{m.id}</td>
-                <td>{m.full_name}</td>
-                <td>{m.license_number}</td>
-                <td>{m.phone_number}</td>
-                <td>{m.email ?? "-"}</td>
-                <td>{m.bike_count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <MotoristsTable motorists={motorists} />
     </AppShell>
   );
 }

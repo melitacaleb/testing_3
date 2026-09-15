@@ -39,6 +39,8 @@ export const addMotoristSchema = z.object({
   address: z.string().optional(),
 });
 
+export const editMotoristSchema = addMotoristSchema;
+
 export const addMotorbikeSchema = z
   .object({
     motoristId: z.coerce.number().int().positive(),
